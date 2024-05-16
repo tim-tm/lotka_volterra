@@ -17,7 +17,10 @@ float beta = 0.02f;   // Predation rate
 float delta = 0.01f;  // Predator reproduction rate
 float gammma = 0.1f;  // Predator death rate
 float scale = 7.f;
+float deltaTime = 0.1f;
 
+float startPrey = 40.f;
+float startPredators = 9.f;
 Tick current_tick = (Tick){40.f, 9.f};
 size_t ticks_size = 256;
 size_t ticks_len = 0;
@@ -59,7 +62,8 @@ int main(void) {
     camera.target = (Vector2){camX, camY};
 
     while (!WindowShouldClose()) {
-        if (ticks_len > ticks_size) {
+        // Windows bug-fix: ticks_size-1
+        if (ticks_len > ticks_size-1) {
             ticks_size *= 2;
             ticks = realloc(ticks, ticks_size*sizeof(Tick));
             if (ticks == NULL) {
@@ -73,8 +77,7 @@ int main(void) {
             }
         }
         camera.target = (Vector2){camSlider, camY};
-        
-        update_populations(GetFrameTime());
+        update_populations(deltaTime);
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -101,8 +104,11 @@ int main(void) {
         GuiSliderBar((Rectangle){screenWidth-170, 200, 120, 20}, "Reproduktion: Räuber", TextFormat("%.2f", gammma), &gammma, 0.01f, 1.f);
         GuiSliderBar((Rectangle){screenWidth-170, 230, 120, 20}, "Todesrate: Räuber", TextFormat("%.2f", delta), &delta, 0.01f, 1.f);
         GuiSliderBar((Rectangle){screenWidth-200, 270, 120, 20}, "scale", NULL, &scale, 0.1f, 15.f);
-        if (GuiButton((Rectangle){screenWidth-200, 310, 120, 20}, "reset")) {
-            current_tick = (Tick){40.f, 9.f};
+        GuiSliderBar((Rectangle){screenWidth-200, 300, 120, 20}, "Start: Beute", TextFormat("%.2f", startPrey), &startPrey, 1.f, 100.f);
+        GuiSliderBar((Rectangle){screenWidth-200, 330, 120, 20}, "Start: Räuber", TextFormat("%.2f", startPredators), &startPredators, 1.f, 100.f);
+        GuiSliderBar((Rectangle){screenWidth-200, 360, 120, 20}, "deltaTime", TextFormat("%.2f", deltaTime), &deltaTime, 0.01f, 1.f);
+        if (GuiButton((Rectangle){screenWidth-200, 400, 120, 20}, "reset")) {
+            current_tick = (Tick){startPrey, startPredators};
             ticks_size = 256;
             ticks_len = 0;
             if (ticks != NULL) {
@@ -117,7 +123,7 @@ int main(void) {
             camY = 0;
             camera.target = (Vector2){camX, camY};
         }
-        if (GuiButton((Rectangle){screenWidth-200, 340, 120, 20}, "crash")) {
+        if (GuiButton((Rectangle){screenWidth-200, 430, 120, 20}, "crash")) {
             current_tick = (Tick){2.f, 2.f};
         }
         EndDrawing();
